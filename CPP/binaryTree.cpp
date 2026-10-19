@@ -2,182 +2,120 @@
 
 using namespace std;
 
-
-class BinaryNode
+class BinaryTree
 {
     int data;
-    BinaryNode *left;
-    BinaryNode *right;
+    BinaryTree  *left;
+    BinaryTree *right;
 
-public:
-    BinaryNode(int data)
+public:      
+    BinaryTree(int value)
     {
-        this->data = data;
+       
+        data = value;
         left = right = nullptr;
     }
+ 
 
     void insert(int value)
     {
-        if (value < this->data)
+        if(this->left == nullptr)
         {
-            if (this->left == nullptr)
-            {
-                this->left = new BinaryNode(value);
-            }
-            else
-            {
-                this->left->insert(value);
-            }
+            this->left = new BinaryTree(value);
+            return;
+        }
+        if(this->left != nullptr && this->right  == nullptr)
+        {
+            this->right = new BinaryTree(value);
+            return;
         }
         else
         {
-            if (this->right == nullptr)
-            {
-                this->right = new BinaryNode(value);
-            }
-            else
-            {
-                this->right->insert(value);
-            }
+            this->left->insert(value);
         }
+    } 
+
+    int countNodes()
+    {
+        int x, y;
+        if(this != nullptr)
+        {
+            x = this->left->countNodes();
+            y = this->right->countNodes();
+            return (x+y+1);
+        }
+        return 0;
     }
 
-    void preOrder()
+    int height()
     {
-        if (this == nullptr)
+        int x=0, y=0;
+        if(this == nullptr)
         {
-            return;
+            return 0;
         }
-        cout << this->data << endl;
-        this->left->preOrder();
-        this->right->preOrder();
-    }
+        x = this->left->height();
+        y = this->right->height();
     
+        if(x > y) 
+        {
+            return x+1;
+        }
+        return y+1;
+    }
+
     void inOrder()
     {
-        if (this->left != nullptr)
+        if(this->left != nullptr)
         {
             this->left->inOrder();
         }
-        cout << this->data << endl;
-
-        if (this->right != nullptr)
+        cout << this->data  << endl;
+        if(this->right != nullptr)
         {
             this->right->inOrder();
         }
-    }
-
-    void search(int value)
+    }  
+    void preOrder()
     {
-        if (this->data == value)
+        cout << this->data  << endl;
+        if(this->left != nullptr)
         {
-            cout << "value found\n";
-            return;
+            this->left->preOrder();
         }
-        if (value < this->data)
+        if(this->right != nullptr)
         {
-            if (this->left != nullptr)
-            {
-                this->left->search(value);
-            }
-            else
-            {
-                cout << "Value Not Found\n";
-            }
+            this->right->preOrder();
         }
-        else
-        {
-            if (this->right != nullptr)
-            {
-                this->right->search(value);
-            }
-            else
-            {
-                cout << "Value Not Found\n";
-            }
-        }
-    }
-
-    BinaryNode *del(int value)
+    } 
+    void postOrder()
     {
-
-        if (value < this->data)
+        if(this->left != nullptr)
         {
-            if (this->left != nullptr)
-            {
-                this->left = this->left->del(value);
-            }
-            else
-            {
-                cout << "Value Not Found\n";
-            }
+            this->left->postOrder();
         }
-        else if (value > this->data)
+        if(this->right != nullptr)
         {
-            if (this->right != nullptr)
-            {
-                this->right = this->right->del(value);
-            }
-            else
-            {
-                cout << "Value Not Found\n";
-            }
+            this->right->postOrder();
         }
-        else
-        {
-            // 1. if leaf node(0 children)
-            if (this->left == nullptr && this->right == nullptr)
-            {
-                delete this;
-                return nullptr;
-            }
-
-            // 2. node with one child
-            if (this->left == nullptr)
-            {
-                BinaryNode *temp = this->right;
-                delete this;
-                return temp;
-            }
-            else if (this->right == nullptr)
-            {
-                BinaryNode *temp = this->left;
-                delete this;
-                return temp;
-            }
-
-            // 3. node with 2 children
-            BinaryNode *temp = this->right;
-            while (temp->left != nullptr)
-            {
-                temp = temp->left;
-            }
-            this->data = temp->data;
-            this->right = this->right->del(temp->data);
-        }
-        return this;
-    }
+        cout << this->data  << endl;
+    } 
 };
+
 
 int main()
 {
-    BinaryNode *root = new BinaryNode(1);
+    BinaryTree *bt = new BinaryTree(40);
 
-    root->insert(4);
-    root->insert(5);
-    root->insert(2);
-    root->insert(3);
-    root->inOrder();
-
-    root->search(6);
-    root->search(2);
-
-    root->del(7);
-    root->del(5);
-    root->inOrder();
-    cout << endl;
-    root->del(2);
-    root->inOrder();
-
+    bt->insert(10);
+    bt->insert(32);
+    bt->inOrder();
+    
+    cout << bt->countNodes() << endl;
+    cout << bt->height() << endl;
+     
     return 0;
-}
+} 
+
+
+
