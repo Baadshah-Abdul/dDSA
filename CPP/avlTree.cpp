@@ -122,14 +122,12 @@ public:
         {
             if(this->left != nullptr)
                 this->left = this->left->del(value);
-            //NOTE: do NOT return here; must fall through to rebalance on the way up
         }
         //if value is greater, go right
         else if(value > this->data)
         {
             if(this->right != nullptr)
                 this->right = this->right->del(value);
-            //NOTE: do NOT return here; must fall through to rebalance on the way up
         }
         else
         {
@@ -233,6 +231,28 @@ public:
         {
             this->right->inOrder();
         }
+    }void preOrder()
+    {
+        cout << this->data  << endl;
+        if(this->left != nullptr)
+        {
+            this->left->preOrder();
+        }
+        if(this->right != nullptr)
+        {
+            this->right->preOrder();
+        }
+    }void postOrder()
+    {
+        if(this->left != nullptr)
+        {
+            this->left->postOrder();
+        }
+        if(this->right != nullptr)
+        {
+            this->right->postOrder();
+        }
+        cout << this->data  << endl;
     }
 };
 
