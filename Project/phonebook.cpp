@@ -205,6 +205,12 @@ private:
         return rebalance(n);
     }
 
+    //for displaying data
+    void print(Contact c)
+    {
+        cout << c.id << "|" << c.name <<"| +" << c.countryCode << " " << c.phone <<"|" << c.email << "|" << c.city << endl;
+    }
+
     void inorder(Node* n)
     {
         if(n ==  nullptr)
@@ -214,7 +220,9 @@ private:
         {
             inorder(n->left);
         }
-        cout << n->data.id << "|" << n->data.name <<"| +" << n->data.countryCode << " " << n->data.phone <<"|" << n->data.email << "|" << n->data.city << endl;
+
+        print(n->data);
+
         if(n->right != nullptr)
         {
             inorder(n->right);
@@ -294,7 +302,45 @@ private:
         delete n;
     }
 
+    void collect(Node* n,string text, string* starts, int &a, string* contains, int &b)
+    {
+        if(n == nullptr)
+            return;
+        if(text.empty())
+            return;
 
+        //left node
+        collect(n->left, text, starts, a, contains, b);
+
+        //name in node
+        string name = toLowerStr(n->data.name);
+
+        //check if matches
+        size_t f = name.find(text);
+        if(f == 0)
+        {
+            starts[a++] = n->key;
+        }
+        else if(f != string::npos)
+        {
+            contains[b++] = n->key;
+        }
+
+
+        //right node
+        collect(n->right, text, starts, a, contains, b);
+    }
+
+    Node* findNode(Node* n, string key)
+    {
+        if(n ==  nullptr)
+            return nullptr;
+        if(n->key > key)
+            return findNode(n->left, key);
+        if(n->key < key)
+            return findNode(n->right, key);
+        return n;
+    }
 
 public:
     AVLTree()
@@ -336,16 +382,13 @@ public:
         return deleted;
     }
 
-    int collect(Node* n,string text, string* contains, int a, string* contains, int b);
-
-
     void search(string text)
     {
-        
+        //check usr input
         text = toLowerStr(trimStr(text));
-        if(text)
+        if(text.empty())
         {
-            cout << "Please Enter a Name:\n";
+            cout << "Please enter a Name:\n";
             return;
         }
         if(count == 0)
@@ -354,10 +397,147 @@ public:
             return;
         }
 
+        //counter and ptr for searching and storing
+        int a = 0, b = 0;
         string* starts = new string[count];
-        string* contains = new  string][count];
+        string* contains = new  string[count];
+
+        collect(root, text, starts, a, contains, b);
+
+        //print only when there
+        if(a+b == 0)
+        {
+            cout << "No Contacts Found!\n";
+            delete[] starts;
+            delete[] contains;
+            return;
+        }
+
+        if(a > 0)
+        {
+            cout <<  "Names starting with " << text << endl;
+
+            for(int i = 0;  i < a; i++)
+            {
+                Node *temp = findNode(root, starts[i]);
+                cout << (i + 1) << ". ";
+                if(temp)
+                    print(temp->data);
+            }
+        }
+        if(b > 0)
+        {
+            cout <<  "Names containing " << text << endl;
+            for(int i = 0;  i < b; i++)
+            {
+                Node *temp = findNode(root, contains[i]);
+                cout << (a + i + 1) << ". ";
+                if(temp)
+                    print(temp->data);
+            }
+        }
+
+        delete[] starts;
+        delete[] contains;
+
     }
 
+    bool sameCode(string a, string b)
+    {
+        if(a == b || a == "00" || b == "00")
+            return true;
+        return false;
+    }
+
+    bool sameContact(Contact x, Contact y)
+    {
+        string xname = toLowerStr(x.name);
+        string xemail = toLowerStr(x.email);
+        string xcity = toLowerStr(x.city);
+
+        string yname = toLowerStr(y.name);
+        string yemail = toLowerStr(y.email);
+        string ycity = toLowerStr(y.city);
+
+        if(xname == yname && xemail == yemail && xcity == ycity && x.phone == y.phone && sameCode(x.countryCode, y.countryCode))
+            return true;
+
+        return false;
+    }
+
+
+
+    Node* findDuplicate(Node* n, Contact c, int skipId)
+    {
+        if(n == nullptr)
+            return nullptr;
+
+        string prefix = toLowerStr(c.name) + JOINER;
+
+        string head = n->key.substr(0, prefix.length());
+        if(prefix == head)
+        {
+            if(sameContact(n->data, c) && n->data.id != skipId)
+                return n;
+
+            Node *r = findDuplicate(n->left, c, skipId);
+            if(r)
+                return  r;
+            return findDuplicate(n->right, c, skipId);
+
+        }
+        if(prefix < head)
+        {
+            return findDuplicate(n->left, c, skipId);
+        }
+        if(prefix > head)
+        {
+            return findDuplicate(n->right, c, skipId);
+        }
+        return n;
+
+    }
+
+    bool add(Contact c)
+    {
+        if(!c.name.empty())
+        {
+            c.name = trimStr(c.name);
+        }
+        else
+        {
+            cout << "Enter name!\n";
+            return false;
+        }
+        if(!c.phone.empty())
+        {
+            c.phone = digitsOnly(c.phone);
+        }
+        else
+        {
+            cout << "Enter an email!\n";
+            return false;
+        }
+        c.city =  trimStr(c.city);
+        c.email = trimStr(c.email);
+        if(!c.countryCode.empty())
+        {
+            c.countryCode =  digitsOnly(c.countryCode);
+        }
+        else
+        {
+            c.countryCode = "00";
+        }
+
+        if(findDuplicate(root, c, 0))
+        {
+            print(c);
+            return false;
+        }
+        insert(c);
+        return true;
+
+    }
 
 
 };
@@ -366,7 +546,9 @@ public:
 int main()
 {
     AVLTree t;
-    string names[] = {"Amit", "Bina", "Charu", "Dev", "Esha", "Farhan", "Gita"};
+    string names[] = {"Rahul", "Rajesh", "ram", "Ram Kumar", "Amit Rao",
+                      "Arun", "Kiran", "Priya", "Sridhar", "Amit"
+                     };
     for (string n : names)
     {
         Contact c;
@@ -374,23 +556,37 @@ int main()
         t.insert(c);
     }
 
-    cout << "--- Delete Dev (root, two children) ---\n";
-    cout << "returned: " << t.remove(makeKey("Dev", 4)) << "\n";
-    t.display();
-    cout << "Height: " << t.getHeight() << "\n";
+    cout << "--- search R ---\n";
+    t.search("R");
+    cout << "\n--- search r (must be identical) ---\n";
+    t.search("r");
+    cout << "\n--- search zzz ---\n";
+    t.search("zzz");
+    cout << "\n--- empty search ---\n";
+    t.search("   ");
 
-    cout << "\n--- Delete missing key ---\n";
-    cout << "returned (expect 0): " << t.remove(makeKey("Zara", 99)) << "\n";
+    Contact c;
+    c.name="Rahul";
+    c.countryCode="91";
+    c.phone="9876543210";
+    c.email="abd@mail.com";
+    c.city="Delhi";
+    t.add(c);
 
-    cout << "\n--- Delete leaf Amit ---\n";
-    cout << "returned: " << t.remove(makeKey("Amit", 1)) << "\n";
-    t.display();
+    c.name="RAHUL";
+    c.countryCode="+91";
+    c.phone="98765-43210";
+    c.email="ABD@MAIL.COM";
+    c.city="delhi";
+    cout << "expect 0: " << t.add(c) << "\n";
 
-    cout << "\n--- Delete Gita, Farhan, Esha (forces a rotation) ---\n";
-    t.remove(makeKey("Gita", 7));
-    t.remove(makeKey("Farhan", 6));
-    t.remove(makeKey("Esha", 5));
-    t.display();
-    cout << "Height: " << t.getHeight() << "\n";
+    c.countryCode="1";
+    cout << "expect 1: " << t.add(c) << "\n";
+    c.countryCode="00";
+    cout << "expect 0: " << t.add(c) << "\n";
+    c.countryCode="91";
+    c.city="Pune";
+    cout << "expect 1: " << t.add(c) << "\n";
+
     return 0;
 }
