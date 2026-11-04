@@ -342,6 +342,62 @@ private:
         return n;
     }
 
+    bool sameCode(string a, string b)
+    {
+        if(a == b || a == "00" || b == "00")
+            return true;
+        return false;
+    }
+
+    bool sameContact(Contact x, Contact y)
+    {
+        string xname = toLowerStr(x.name);
+        string xemail = toLowerStr(x.email);
+        string xcity = toLowerStr(x.city);
+
+        string yname = toLowerStr(y.name);
+        string yemail = toLowerStr(y.email);
+        string ycity = toLowerStr(y.city);
+
+        if(xname == yname && xemail == yemail && xcity == ycity && x.phone == y.phone && sameCode(x.countryCode, y.countryCode))
+            return true;
+
+        return false;
+    }
+
+
+
+    Node* findDuplicate(Node* n, Contact c, int skipId)
+    {
+        if(n == nullptr)
+            return nullptr;
+
+        string prefix = toLowerStr(c.name) + JOINER;
+
+        string head = n->key.substr(0, prefix.length());
+        if(prefix == head)
+        {
+            if(sameContact(n->data, c) && n->data.id != skipId)
+                return n;
+
+            Node *r = findDuplicate(n->left, c, skipId);
+            if(r)
+                return  r;
+            return findDuplicate(n->right, c, skipId);
+
+        }
+        if(prefix < head)
+        {
+            return findDuplicate(n->left, c, skipId);
+        }
+        if(prefix > head)
+        {
+            return findDuplicate(n->right, c, skipId);
+        }
+        return n;
+
+    }
+
 public:
     AVLTree()
     {
@@ -442,61 +498,6 @@ public:
 
     }
 
-    bool sameCode(string a, string b)
-    {
-        if(a == b || a == "00" || b == "00")
-            return true;
-        return false;
-    }
-
-    bool sameContact(Contact x, Contact y)
-    {
-        string xname = toLowerStr(x.name);
-        string xemail = toLowerStr(x.email);
-        string xcity = toLowerStr(x.city);
-
-        string yname = toLowerStr(y.name);
-        string yemail = toLowerStr(y.email);
-        string ycity = toLowerStr(y.city);
-
-        if(xname == yname && xemail == yemail && xcity == ycity && x.phone == y.phone && sameCode(x.countryCode, y.countryCode))
-            return true;
-
-        return false;
-    }
-
-
-
-    Node* findDuplicate(Node* n, Contact c, int skipId)
-    {
-        if(n == nullptr)
-            return nullptr;
-
-        string prefix = toLowerStr(c.name) + JOINER;
-
-        string head = n->key.substr(0, prefix.length());
-        if(prefix == head)
-        {
-            if(sameContact(n->data, c) && n->data.id != skipId)
-                return n;
-
-            Node *r = findDuplicate(n->left, c, skipId);
-            if(r)
-                return  r;
-            return findDuplicate(n->right, c, skipId);
-
-        }
-        if(prefix < head)
-        {
-            return findDuplicate(n->left, c, skipId);
-        }
-        if(prefix > head)
-        {
-            return findDuplicate(n->right, c, skipId);
-        }
-        return n;
-
-    }
 
     bool add(Contact c)
     {
@@ -539,6 +540,10 @@ public:
 
     }
 
+    int pickContact(string text)
+    {
+
+    }
 
 };
 
