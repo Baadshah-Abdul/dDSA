@@ -45,5 +45,6 @@ public class Patient {
         p2.show();
         p3.show();
         getTotalPatients();
+        sc.close();
     }
 }
