@@ -515,7 +515,7 @@ public:
         }
         else
         {
-            cout << "Enter an email!\n";
+            cout << "Enter a phone number!\n";
             return false;
         }
         c.city =  trimStr(c.city);
