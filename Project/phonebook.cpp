@@ -208,7 +208,7 @@ private:
     //for displaying data
     void print(Contact c)
     {
-        cout << c.id << "|" << c.name <<"| +" << c.countryCode << " " << c.phone <<"|" << c.email << "|" << c.city << endl;
+        cout << c.name << " | " << (!c.countryCode.empty() ? c.countryCode : "") << " " << c.phone << " | " << (!c.email.empty() ? c.email : " - ") << " | " << (!c.city.empty() ? c.city : " - ") << endl;
     }
 
     void inorder(Node* n)
@@ -398,6 +398,12 @@ private:
 
     }
 
+    void insertKeepId(Contact c)
+    {
+        root = insertNode(root, c);
+        count++;
+    }
+
 public:
     AVLTree()
     {
@@ -530,9 +536,11 @@ public:
             c.countryCode = "00";
         }
 
-        if(findDuplicate(root, c, 0))
+        Node *temp = findDuplicate(root, c, 0);
+        if(temp)
         {
-            print(c);
+            cout << "This contact already exists!\n";
+            print(temp->data);
             return false;
         }
         insert(c);
@@ -540,10 +548,332 @@ public:
 
     }
 
-    int pickContact(string text)
+    string pickContact(string text)
     {
+        text = toLowerStr(trimStr(text));
+        if(text.empty())
+        {
+            cout << "Phonebook empty!\n";
+            return "";
+        }
 
+        if(count == 0)
+            return  "";
+
+        //counter and ptr for searching and storing
+        int a = 0, b = 0;
+        string* starts = new string[count];
+        string* contains = new  string[count];
+
+        collect(root, text, starts, a, contains, b);
+        if(a+b == 0)
+        {
+            cout << "No Contacts Found!\n";
+            delete[] starts;
+            delete[] contains;
+            return "";
+        }
+
+        if(a > 0)
+        {
+            cout <<  "Names starting with " << text << endl;
+
+            for(int i = 0;  i < a; i++)
+            {
+                Node *temp = findNode(root, starts[i]);
+                cout << (i + 1) << ". ";
+                if(temp)
+                    print(temp->data);
+            }
+        }
+        if(b > 0)
+        {
+            cout <<  "Names containing " << text << endl;
+            for(int i = 0;  i < b; i++)
+            {
+                Node *temp = findNode(root, contains[i]);
+                cout << (a + i + 1) << ". ";
+                if(temp)
+                    print(temp->data);
+            }
+        }
+
+        cout << "Select number (0 to cancel)\n";
+        int option;
+        cin >> option;
+
+        if(cin.fail())
+        {
+            cin.clear();
+            cin.ignore(1000, '\n');
+            delete[] starts;
+            delete[] contains;
+            return "";
+        }
+        cin.ignore(1000, '\n');
+
+        if(option == 0)
+        {
+            delete[] starts;
+            delete[] contains;
+            return "";
+        }
+        if(option >= 1 &&  option <= a)
+        {
+            string chosen = starts[option - 1];
+            delete[] starts;
+            delete[] contains;
+            return chosen;
+        }
+        if(option > a && option <= a+b)
+        {
+            string chosen = contains[option - a -1];
+            delete[] starts;
+            delete[] contains;
+            return chosen;
+        }
+
+        delete[] starts;
+        delete[] contains;
+        return "";
     }
+
+    void deleteContact(string text)
+    {
+        string key = pickContact(text);
+
+        if(key == "")
+            return;
+
+        Node *temp = findNode(root, key);
+        if(!temp)
+            return;
+        print(temp->data);
+        cout << "Delete this contact? (y/n)\n";
+        string answer;
+        cin >> answer;
+        cin.ignore(1000, '\n');
+
+        if(answer == "y" || answer == "Y")
+        {
+            if(remove(key))
+                cout << "Deleted\n";
+        }
+        else
+        {
+            cout << "Cancelled\n";
+        }
+    }
+
+
+
+    void updateContact(string text)
+    {
+        string key = pickContact(text);
+        if(key == "")
+            return;
+        Node *temp = findNode(root, key);
+        if(temp == nullptr)
+            return;
+        print(temp->data);
+        cout << "1. Name\n" << "2. Country code\n" << "3. Phone\n" << "4. Email\n" << "5. City\n" << "6. Cancel\n";
+        int option;
+        cin >> option;
+        cin.ignore(1000, '\n');
+
+        Contact copy = temp->data;
+
+        string city;
+        string email;
+        string phone;
+        string code;
+        string name;
+        switch(option)
+        {
+        case 1:
+            cout << "Enter the Name:\n";
+            getline(cin, name);
+            name = trimStr(name);
+            copy.name = name;
+            break;
+
+        case 2:
+            cout << "Enter the Country code\n";
+            getline(cin, code);
+            code = digitsOnly(code);
+            copy.countryCode = code;
+            if(code.empty())
+                copy.countryCode = "00";
+            break;
+
+        case 3:
+            cout << "Enter the phone number\n";
+            getline(cin, phone);
+            phone = digitsOnly(phone);
+            copy.phone = phone;
+            break;
+
+        case 4:
+            cout << "Enter the email\n";
+            getline(cin, email);
+            email = trimStr(email);
+            copy.email  = email;
+            break;
+
+        case 5:
+            cout << "Enter the City:\n";
+            getline(cin, city);
+            city = trimStr(city);
+            copy.city =  city;
+            break;
+
+        case  6:
+            cout << "Cancelled\n";
+            return;
+
+        default:
+            cout  << "Wrong Option\n";
+            return;
+        }
+
+        if(cin.fail())
+            return;
+
+        if(copy.name.empty() || copy.phone.empty())
+        {
+            cout << "No entry without name or phone number allowed\n";
+            return;
+        }
+
+        Node *dup = findDuplicate(root, copy, temp->data.id);
+        if(dup)
+        {
+            cout << "Already in Phonebook\n";
+            print(dup->data);
+            return;
+        }
+        if(option == 1)
+        {
+            remove(key);
+            insertKeepId(copy);
+        }
+        else
+            temp->data = copy;
+
+        cout << "Updated\n";
+    }
+
+
+    void saveNode(Node* n, ofstream &fout)
+    {
+        if(n == nullptr)
+            return;
+
+        fout << n->data.id << endl;
+        fout << n->data.name << endl;
+        fout << n->data.countryCode << endl;
+        fout << n->data.phone << endl;
+        fout << n->data.email << endl;
+        fout << n->data.city << endl;
+
+        saveNode(n->left, fout);
+        saveNode(n->right, fout);
+    }
+    void savephonebook()
+    {
+        ofstream fout("phonebook.txt");
+        fout << nextId << endl;
+        fout << count << endl;
+        saveNode(root, fout);
+        fout.close();
+    }
+
+    int loadPhonebook()
+    {
+        ifstream fin("phonebook.txt");
+        if(!fin)
+        {
+            cout << "No saved Contacts!\n";
+            return 0;
+        }
+
+        int loaded = 0, maxId = 0, savedNextId = 0;
+
+        try
+        {
+            string line;
+            int cnt;
+            getline(fin, line);
+            int savedNextId = stoi(line);
+            getline(fin, line);
+            int n = stoi(line);
+
+            for(int i = 0; i < n; i++)
+            {
+                string id, name, code, phone, email, city;
+                if(!getline(fin, id))
+                    break;
+                if(!getline(fin, name))
+                    break;
+                if(!getline(fin, code))
+                    break;
+                if(!getline(fin, phone))
+                    break;
+                if(!getline(fin, email))
+                    break;
+                if(!getline(fin, city))
+                    break;
+
+                Contact c;
+                c.id = stoi(id);
+                c.name = name;
+                c.countryCode = code;
+                c.phone = phone;
+                c.email = email;
+                c.city = city;
+
+                insertKeepId(c);
+                loaded++;
+                if(c.id > maxId)
+                    maxId = c.id;
+            }
+        }
+        catch(...)
+        {
+            cout << "saved file is damaged. Loaded " << loaded <<  " contact(s)\n";
+        }
+        fin.close();
+        nextId = savedNextId;
+        if(nextId <= maxId)
+            nextId = maxId + 1;
+        return loaded;
+    }
+
+    string readLine(string prompt)
+    {
+        string s;
+        cout << prompt;
+        getline(cin, s);
+        return trimStr(s);
+    }
+
+    Contact askContact()
+    {
+        Contact c;
+        c.name = readLine("Name: ");
+        c.countryCode = digitsOnly(readLine("Country code: "));
+        if(!c.countryCode.empty())
+            c.countryCode = "00";
+        c.phone = digitsOnly(readLine("Phone: "));
+        c.email = readLine("Email: ");
+        c.city = readLine("City: ");
+
+        return c;
+    }
+
+
+
+
 
 };
 
@@ -551,47 +881,27 @@ public:
 int main()
 {
     AVLTree t;
-    string names[] = {"Rahul", "Rajesh", "ram", "Ram Kumar", "Amit Rao",
-                      "Arun", "Kiran", "Priya", "Sridhar", "Amit"
-                     };
-    for (string n : names)
-    {
-        Contact c;
-        c.name = n;
-        t.insert(c);
-    }
-
-    cout << "--- search R ---\n";
-    t.search("R");
-    cout << "\n--- search r (must be identical) ---\n";
-    t.search("r");
-    cout << "\n--- search zzz ---\n";
-    t.search("zzz");
-    cout << "\n--- empty search ---\n";
-    t.search("   ");
-
     Contact c;
-    c.name="Rahul";
+    c.name="Ram Kumar";
     c.countryCode="91";
-    c.phone="9876543210";
-    c.email="abd@mail.com";
-    c.city="Delhi";
+    c.phone="111";
+    c.email="r@x.com";
+    c.city="New Delhi";
     t.add(c);
+    c.name="Amit";
+    c.phone="222";
+    c.countryCode = "";
+    t.add(c);
+    t.savephonebook();
 
-    c.name="RAHUL";
-    c.countryCode="+91";
-    c.phone="98765-43210";
-    c.email="ABD@MAIL.COM";
-    c.city="delhi";
-    cout << "expect 0: " << t.add(c) << "\n";
+    AVLTree t2;
+    cout << "loaded: " << t2.loadPhonebook() << "\n";
+    t2.display();
+    c.name="Zara";
+    c.phone="333";
+    t2.add(c);   // must get ID 3, not 1 or 2
+    t2.display();
 
-    c.countryCode="1";
-    cout << "expect 1: " << t.add(c) << "\n";
-    c.countryCode="00";
-    cout << "expect 0: " << t.add(c) << "\n";
-    c.countryCode="91";
-    c.city="Pune";
-    cout << "expect 1: " << t.add(c) << "\n";
 
-    return 0;
 }
+
