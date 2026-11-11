@@ -2,10 +2,10 @@
 
 using namespace std;
 
-int getmax(int arr, int n)
+int getMax(int arr[], int n)
 {
     int max = arr[0];
-    for(int i = 0; i < n; n++)
+    for(int i = 0; i < n; i++)
     {
         if(arr[i] > max)
             max = arr[i];
@@ -26,12 +26,12 @@ void countingSort(int arr[], int place, int n)
     }
 
     //total count
-    for(int i = 1; i < n; i++)
+    for(int i = 1; i < 10; i++)
     {
         count[i] = count[i] + count[i - 1];
     }
 
-    for(int i = n - 1, i >= 0; i--)
+    for(int i = n - 1; i >= 0; i--)
     {
         int digit = (arr[i]/place) % 10;
         output[count[digit]-1] = arr[i];
@@ -66,7 +66,7 @@ int main()
     }
     cout << endl;
 
-    radixSort(arr, 0, n-1);
+    radixSort(arr,n);
 
     cout << "After Sort\n";
     for(int i = 0; i < n; i++)
