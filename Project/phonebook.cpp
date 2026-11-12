@@ -802,9 +802,8 @@ public:
         try
         {
             string line;
-            int cnt;
             getline(fin, line);
-            int savedNextId = stoi(line);
+            savedNextId = stoi(line);
             getline(fin, line);
             int n = stoi(line);
 
@@ -848,60 +847,81 @@ public:
             nextId = maxId + 1;
         return loaded;
     }
-
-    string readLine(string prompt)
-    {
-        string s;
-        cout << prompt;
-        getline(cin, s);
-        return trimStr(s);
-    }
-
-    Contact askContact()
-    {
-        Contact c;
-        c.name = readLine("Name: ");
-        c.countryCode = digitsOnly(readLine("Country code: "));
-        if(!c.countryCode.empty())
-            c.countryCode = "00";
-        c.phone = digitsOnly(readLine("Phone: "));
-        c.email = readLine("Email: ");
-        c.city = readLine("City: ");
-
-        return c;
-    }
-
-
-
-
-
 };
 
+
+string readLine(string prompt)
+{
+    string s;
+    cout << prompt;
+    getline(cin, s);
+    return trimStr(s);
+}
+
+Contact askContact()
+{
+    Contact c;
+    c.name = readLine("Name: ");
+    c.countryCode = digitsOnly(readLine("Country code: "));
+    if(c.countryCode.empty())
+        c.countryCode = "00";
+    c.phone = digitsOnly(readLine("Phone: "));
+    c.email = readLine("Email: ");
+    c.city = readLine("City: ");
+
+    return c;
+}
 
 int main()
 {
     AVLTree t;
-    Contact c;
-    c.name="Ram Kumar";
-    c.countryCode="91";
-    c.phone="111";
-    c.email="r@x.com";
-    c.city="New Delhi";
-    t.add(c);
-    c.name="Amit";
-    c.phone="222";
-    c.countryCode = "";
-    t.add(c);
-    t.savephonebook();
+    t.loadPhonebook();
 
-    AVLTree t2;
-    cout << "loaded: " << t2.loadPhonebook() << "\n";
-    t2.display();
-    c.name="Zara";
-    c.phone="333";
-    t2.add(c);   // must get ID 3, not 1 or 2
-    t2.display();
+    int option;
+    while(true)
+    {
+        cout << "\nPhonebook Options\n";
+        cout << "1. Add\n2. Search\n3. Update\n4. Delete\n5. Display all\n6. Save and Exit\n";
+        cin >> option;
+        if(cin.fail())
+        {
+            cin.clear();
+            cin.ignore(1000, '\n');
+            cout << "Wrong input\n";
+            continue;
+        }
+        cin.ignore(1000, '\n');
 
-
+        string text;
+        switch (option)
+        {
+        case 1:
+            if(t.add(askContact()))
+                cout << "Added\n";
+            else
+                cout << "Not added\n";
+            break;
+        case 2:
+            text = readLine("Name to search: ");
+            t.search(text);
+            break;
+        case 3:
+            text = readLine("Name to update: ");
+            t.updateContact(text);
+            break;
+        case 4:
+            text = readLine("Name to delete: ");
+            t.deleteContact(text);
+            break;
+        case 5:
+            t.display();
+            break;
+        case 6:
+            t.savephonebook();
+            return 0;
+        default:
+            cout << "Wrong input\n";
+            break;
+        }
+    }
 }
-
